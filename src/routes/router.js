@@ -10,7 +10,7 @@ const welcomeMessage = require("../utils/welcomeMessage.js");
 const router = Router();
 
 router.get("/", (req, res) => {
-    res.status(200).send(welcomeMessage);
+    res.status(200).json({ message: welcomeMessage });
 })
 router.use("/videogames", videogamesRouter);
 router.use("/genres", genresRouter);

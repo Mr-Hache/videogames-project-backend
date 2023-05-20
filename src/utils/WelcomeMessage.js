@@ -1,4 +1,0 @@
-
-const welcomeMessage = "Hello, this is an API that contains the information of hundreds of thousands of video games, also allows you to filter them in different ways. It allows you to create new games, edit and delete the games you have created. To create a new game, you must first load the genres and platforms that are consumed from the rawg.videogames API, you do this by making a get request to 'URL/genres' and 'URL/platforms'. Remember that to create a video game, it must have two arrays of genres and platforms respectively with the id of at least one genre and one platform. Paging is done by combining the games from the database and the games from the rawg.videogames API. To paginate you must pass the parameters 'page' and 'size' by query. The default page size is 10, the default page is 1."
-
-module.exports = welcomeMessage;

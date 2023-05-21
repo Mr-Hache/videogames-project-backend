@@ -2,11 +2,11 @@ const { Videogame, Genre, Platform } = require("../db.js");
 const { presentationInList } = require("../utils/presentationFunctions.js");
 const getGamesApi = require("../utils/getGamesApi");
 
-const getVideogameByBd = async (data) => {
+const getVideogameBySource = async (data) => {
   try {
-    const { filterByBd, page, size, API_KEY } = data;
+    const { source, page, size, API_KEY } = data;
 
-    if (filterByBd == "bd") {
+    if (source == "bd") {
       const options = {
         limit: +size,
         offset: (+page - 1) * +size,
@@ -30,18 +30,39 @@ const getVideogameByBd = async (data) => {
         ],
         offset: options.offset,
         limit: options.limit,
+        order: [["name", "ASC"]],
       });
 
       const gamesDbOrdered = presentationInList(gamesDb);
-      return gamesDbOrdered;
+      const gamesNumber = Videogame.count();
+
+      if (gamesDbOrdered.length === 0)
+        return { message: "No videogames found in the database" };
+      return {
+        genre: null,
+        platform: null,
+        source,
+        page,
+        sizeSet: gamesDbOrdered.length,
+        gamesData: gamesDbOrdered,
+      };
     } else {
-      const gamesApi = await getGamesApi(API_KEY, [page], size);
+      const gamesApi = await getGamesApi({ key: API_KEY, pages: [page], size });
       const gamesApiOrdered = presentationInList(gamesApi);
-      return gamesApiOrdered;
+      if (gamesApiOrdered.length === 0)
+        return { message: "No videogames found in the API" };
+      return {
+        genre: null,
+        platform: null,
+        source,
+        page,
+        sizeSet: gamesApiOrdered.length,
+        gamesData: gamesApiOrdered,
+      };
     }
   } catch (error) {
     throw error;
   }
 };
 
-module.exports = getVideogameByBd;
+module.exports = getVideogameBySource;

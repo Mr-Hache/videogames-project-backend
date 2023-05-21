@@ -8,12 +8,12 @@ const videogamesRouter = Router();
 const {validationCreateVideogame, validationDeleteVideogame, validationUpdateVideogame, validationGetVideogames} = require("../utils/validations/validationsMiddleware");
 
 videogamesRouter.get("/", validationGetVideogames, async (req, res) => {
-  const { name, page, size, filterByGenres,filterByBd } = req.query
+  const { name, page, size, filterByGenre,filterBySource, filterByPlatform } = req.query
   try {
-    const videogames = await getVideogames({name, page, size, filterByGenres, filterByBd});
+    const videogames = await getVideogames({name, page, size, filterByGenre, filterBySource, filterByPlatform});
     res.status(200).json(videogames);
   } catch (error) {
-    return error.message === `No videogames found with the name ${name}`
+    return error.message === `No videogames found with the name ${name}` || error.message === "Request failed with status code 404"
       ? res.status(404).json({ message: error.message })
       : res.status(500).json({ message: error.message });
   }

@@ -1,14 +1,17 @@
 const axios = require('axios');    
 
-const getGamesApi = async(key, dataForApi,size,genre) =>{ 
+const getGamesApi = async(data) =>{ 
+  const {key, pages, size, genre, platform, idPlatform} = data
  try{
-  const request = dataForApi.map((pageForApi) => {
+  const request = pages.map((pageForApi) => {
     return axios.get(`https://api.rawg.io/api/games`,{
       params:{
         key,
         page: pageForApi,
         page_size: size,
-        genres: genre
+        genres: genre,
+        platforms: idPlatform,
+        search: platform
       }
     })
   })

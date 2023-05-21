@@ -4,16 +4,24 @@ const getGamesApi = require("../utils/getGamesApi.js");
 const calculationPagesApi = require("../utils/calculationPagesApi.js");
 const { Op } = require("sequelize");
 
-const getVideogamesByGenres = async (data) => {
+const getVideogamesByGenreOrPlatform = async (data) => {
   try {
-    const { filterByGenres, page, size, API_KEY } = data;
+    const { filterBy, page, size, API_KEY, Model, typeFilter } = data;
+
+    const idPlatform = await Platform.findOne({
+      where: {
+        name: {
+          [Op.iLike]: `${filterBy}`,
+        },
+      },
+    });
 
     const options = {
       limit: +size,
       offset: (+page - 1) * +size,
     };
 
-    const gamesDbByGenre = await Genre.findAll({
+    const gamesDbBy = await Model.findAll({
       include: [
         {
           model: Videogame,
@@ -37,12 +45,13 @@ const getVideogamesByGenres = async (data) => {
       ],
       where: {
         name: {
-          [Op.iLike]: `${filterByGenres}`,
+          [Op.iLike]: `${filterBy}`,
         },
       },
+      order: [[Videogame, "name", "ASC"]],
     });
 
-    const gamesDb = gamesDbByGenre[0].videogames;
+    const gamesDb = gamesDbBy[0].videogames;
     const numberGamesDb = gamesDb.length;
     const gamesDbOrdered =
       numberGamesDb > size * page
@@ -52,9 +61,10 @@ const getVideogamesByGenres = async (data) => {
         : presentationInList(gamesDb.slice(options.offset, gamesDb.length));
     if (numberGamesDb > page * size || gamesDbOrdered.length == size)
       return {
-        genre: filterByGenres,
+        genre: typeFilter == "genre" ? filterBy : null,
+        platform: typeFilter == "platform" ? filterBy : null,
         page,
-        sizeSet: size,
+        sizeSet: gamesDbOrdered.length,
         gamesData: gamesDbOrdered,
       };
 
@@ -63,12 +73,14 @@ const getVideogamesByGenres = async (data) => {
     let gamesApi = [];
     if (gamesDbOrdered.length > 0) {
       const numberOfApiSetsRequired = size - gamesDbOrdered.length;
-      gamesApi = await getGamesApi(
-        API_KEY,
-        [1],
-        numberOfApiSetsRequired,
-        filterByGenres
-      );
+      gamesApi = await getGamesApi({
+        key: API_KEY,
+        pages: [1],
+        size: numberOfApiSetsRequired,
+        platform: typeFilter == "platform" ? filterBy : null,
+        genre: typeFilter == "genre" ? filterBy : null,
+        idPlatform: idPlatform ? idPlatform.id : null,
+      });
     } else {
       const skippedPages = Math.ceil(numberGamesDb / size);
       const indexGameInitial =
@@ -83,7 +95,15 @@ const getVideogamesByGenres = async (data) => {
         size,
         residue
       );
-      const gamesApiSet = await getGamesApi(API_KEY, pagesForApi.pages, size);
+
+      const gamesApiSet = await getGamesApi({
+        key: API_KEY,
+        pages: pagesForApi.pages,
+        size,
+        platform: typeFilter == "platform" ? filterBy : null,
+        genre: typeFilter == "genre" ? filterBy : null,
+        idPlatform: idPlatform ? idPlatform.id : null,
+      });
       if (pagesForApi.pages.length > 1) {
         gamesApi = gamesApiSet.slice(
           pagesForApi.lowCutIndex,
@@ -92,16 +112,23 @@ const getVideogamesByGenres = async (data) => {
       } else {
         gamesApi = gamesApiSet;
       }
+      // return {indexGameFinal, indexGameInitial, residue, pagesForApi, skippedPages}
     }
     const gamesApiOrdered = presentationInList(gamesApi);
 
     const gamesData = [...gamesDbOrdered, ...gamesApiOrdered];
     if (gamesData.length === 0)
-      throw new Error("No videogames found in the database or in the API ");
-    return { genre: filterByGenres, page, sizeSet: size, gamesData };
+      return { message: "No videogames found with that filter " };
+    return {
+      genre: typeFilter == "genre" ? filterBy : null,
+      platform: typeFilter == "platform" ? filterBy : null,
+      page,
+      sizeSet: gamesData.length,
+      gamesData,
+    };
   } catch (err) {
     throw err;
   }
 };
 
-module.exports = getVideogamesByGenres;
+module.exports = getVideogamesByGenreOrPlatform;

@@ -5,13 +5,18 @@ const getVideogamesByName = require("./03-getVideogamesByName.js");
 const { API_KEY } = process.env;
 const calculationPagesApi = require("../utils/calculationPagesApi.js");
 const getGamesApi = require("../utils/getGamesApi");
-const getVideogamesByGenres = require("./09-getVideogamesByGenres.js");
-const getVideogamesByBd = require("./10-getVideogamesByBd.js");
-const getVideogamesByBdAndGenre = require("./11-getVideogamesByBdAndGenre.js");
+const getVidegamesByFilter = require("./09-getVideogamesByFilter.js");
 
 // funcion que trae los juegos tanto de la base de datos como de la api, OMITIR si viene ocn nombre en el req.query
 const getVideogames = async (data) => {
-  const { name, page = 1, size = 10, filterByGenres, filterByBd } = data;
+  const {
+    name,
+    page = 1,
+    size = 10,
+    filterByGenre,
+    filterBySource,
+    filterByPlatform,
+  } = data;
   const options = {
     limit: +size,
     offset: (+page - 1) * +size,
@@ -22,35 +27,9 @@ const getVideogames = async (data) => {
       const gamesByName = await getVideogamesByName(name);
       return gamesByName;
     }
-    if (filterByBd && filterByGenres) {
-      const gamesByBdAndGenre = await getVideogamesByBdAndGenre({
-        genre: filterByGenres,
-        bd: filterByBd,
-        page,
-        size,
-        API_KEY,
-      });
-      return gamesByBdAndGenre;
-    }
-    if (filterByGenres) {
-      const gamesByGenres = await getVideogamesByGenres({
-        API_KEY,
-        filterByGenres,
-        page,
-        size,
-        filterByGenres,
-      });
-      return gamesByGenres;
-    }
-
-    if (filterByBd) {
-      const gamesByBd = await getVideogamesByBd({
-        API_KEY,
-        filterByBd,
-        page,
-        size,
-      });
-      return gamesByBd;
+    if (filterByGenre || filterBySource || filterByPlatform) {
+      const gamesByFilter = await getVidegamesByFilter({genre: filterByGenre, platform: filterByPlatform, source: filterBySource, page, size, API_KEY });
+      return gamesByFilter;
     }
 
     const gamesDb = await Videogame.findAll({
@@ -72,18 +51,24 @@ const getVideogames = async (data) => {
       ],
       offset: options.offset,
       limit: options.limit,
+      order : [["name", "ASC"]],
+      
     });
     const gamesDbOrdered = presentationInList(gamesDb);
     const numberGamesDb = await Videogame.count();
     if (numberGamesDb > page * size || gamesDbOrdered.length == size)
-      return { page, sizeSet: size, gamesData: gamesDbOrdered };
+      return { page, sizeSet: gamesDbOrdered.length, gamesData: gamesDbOrdered };
 
     //  Obtener juegos de la API
 
     let gamesApi = [];
     if (gamesDbOrdered.length > 0) {
       const numberOfApiSetsRequired = size - gamesDbOrdered.length;
-      gamesApi = await getGamesApi(API_KEY, [1], numberOfApiSetsRequired);
+      gamesApi = await getGamesApi({
+        key: API_KEY,
+        pages: [1],
+        size: numberOfApiSetsRequired,
+      });
     } else {
       const skippedPages = Math.ceil(numberGamesDb / size);
       const indexGameInitial =
@@ -99,7 +84,11 @@ const getVideogames = async (data) => {
         residue
       );
 
-      const gamesApiSet = await getGamesApi(API_KEY, pagesForApi.pages, size);
+      const gamesApiSet = await getGamesApi({
+        key: API_KEY,
+        pages: pagesForApi.pages,
+        size,
+      });
       // return {skippedPages, indexGameInitial, indexGameFinal, pagesForApi}
       if (pagesForApi.pages.length > 1) {
         gamesApi = gamesApiSet.slice(
@@ -116,8 +105,8 @@ const getVideogames = async (data) => {
     const gamesData = [...gamesDbOrdered, ...gamesApiOrdered];
 
     if (gamesData.length === 0)
-      throw new Error("No videogames found in the database or in the API ");
-    return { page, sizeSet: size, gamesData };
+      return ({message: "No videogames found in the database or in the API "});
+    return { page, sizeSet: gamesData.length, gamesData };
   } catch (error) {
     throw error;
   }

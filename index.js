@@ -27,6 +27,7 @@ conn
   .sync({ alter: true })
   .then(() => {
     server.listen(PORT,"0.0.0.0", () => {
+      // server.listen(PORT, () => {
       console.log(`listening in port ${PORT}`); // eslint-disable-line no-console
     });
   })

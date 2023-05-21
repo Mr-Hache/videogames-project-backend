@@ -46,20 +46,31 @@ const idVerificationOfArray = async (array, Model, type, errors) => {
   }
 };
 
-const validateGenreName = async (genreName, Model, Op, errors) => {
-  const genre = await Model.findOne({
+const validateGenreOrPlatformName = async (genreName, platformName , ModelG, ModelP, Op, errors) => {
+  if (genreName) {
+  const genre = await ModelG.findOne({
     where: { name: { [Op.iLike]: genreName } },
   });
   if (!genre) {
     errors[
       `genreVerification/${genreName}`
     ] = `The genre ${genreName} does not exist`;
+  }}
+  if (platformName) {
+  const platform = await ModelP.findOne({
+    where: { name: { [Op.iLike]: platformName } },
+  });
+  if (!platform) {
+    errors[
+      `platformVerification/${platformName}`
+    ] = `The platform ${platformName} does not exist`;
+  }
   }
 };
 
-const validateFilterBd = (bd, errors) => {
-  if (bd !== "bd" && bd !== "api") {
-    errors[`validateFilterDb/${bd}`] = `The filter ${bd} is not valid`;
+const validateFilterSource = (source, errors) => {
+  if (source !== "bd" && source !== "api") {
+    errors[`validateFilterDb/${source}`] = `The filter ${source} is not valid`;
   }
 };
 
@@ -69,6 +80,6 @@ module.exports = {
   idVerificationOfArray,
   validateID,
   validateIntegersArray,
-  validateGenreName,
-  validateFilterBd,
+  validateGenreOrPlatformName,
+  validateFilterSource,
 };

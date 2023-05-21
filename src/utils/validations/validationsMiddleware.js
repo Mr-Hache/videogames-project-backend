@@ -5,8 +5,8 @@ const {
   idVerificationOfArray,
   validateID,
   validateIntegersArray,
-  validateGenreName,
-  validateFilterBd,
+  validateGenreOrPlatformName,
+  validateFilterSource,
 } = require("../validations/validationFunctions.js");
 const { Op } = require("sequelize");
 
@@ -52,10 +52,11 @@ const validationCreateVideogame = async (req, res, next) => {
     }
   }
 
-  if(rating && isFinite(rating)){
-    if(rating < 0 && rating > 5){
-       errors["rating"] = "Rating must be between 0 and 5";
-    }}
+  if (rating && isFinite(rating)) {
+    if (rating < 0 && rating > 5) {
+      errors["rating"] = "Rating must be between 0 and 5";
+    }
+  }
 
   validateType(name, "string", "Name must be a string", "name", errors);
 
@@ -127,10 +128,11 @@ const validationUpdateVideogame = async (req, res, next) => {
       errors
     );
   }
-  if(rating && isFinite(rating)){
- if(rating < 0 && rating > 5){
-    errors["rating"] = "Rating must be between 0 and 5";
- }}
+  if (rating && isFinite(rating)) {
+    if (rating < 0 && rating > 5) {
+      errors["rating"] = "Rating must be between 0 and 5";
+    }
+  }
 
   if (Array.isArray(genres) && genres.length > 0) {
     const genresNotIsInteger = validateIntegersArray(genres, "genres", errors);
@@ -183,33 +185,33 @@ const validationUpdateVideogame = async (req, res, next) => {
 };
 
 const validationGetVideogames = async (req, res, next) => {
-  const { filterByGenres, filterByBd, name } = req.query;
+  const { filterByGenre, filterByPlatform, filterBySource, name } = req.query;
   const errors = {};
 
-  if (name && (filterByBd || filterByGenres)) {
+  if (name && (filterBySource || filterByGenre || filterByPlatform)) {
     errors["filterBy"] =
       "You can't use the name filter with the filterByGenres or filterByBd filter";
   }
 
-  if (filterByGenres) {
-    validateType(
-      filterByGenres,
-      "string",
-      "the filter must be a string",
-      "filterByGenres",
+  if (filterByPlatform || filterByGenre) {
+    await validateGenreOrPlatformName(
+      filterByGenre,
+      filterByPlatform,
+      Genre,
+      Platform,
+      Op,
       errors
     );
-    await validateGenreName(filterByGenres, Genre, Op, errors);
   }
-  if (filterByBd) {
+  if (filterBySource) {
     validateType(
-      filterByBd,
+      filterBySource,
       "string",
       "the filter must be a string",
-      "filterByBd",
+      "filterBySource",
       errors
     );
-    validateFilterBd(filterByBd, errors);
+    validateFilterSource(filterBySource, errors);
   }
   if (name) {
     validateType(name, "string", "the filter must be a string", "name", errors);

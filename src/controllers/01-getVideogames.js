@@ -17,6 +17,9 @@ const getVideogames = async (data) => {
     filterBySource,
     filterByPlatform,
   } = data;
+  filterByGenre ? filterByGenre.toLowerCase() : null;
+  filterBySource ? filterBySource.toLowerCase() : null;
+  filterByPlatform ? filterByPlatform.toLowerCase() : null;
   const options = {
     limit: +size,
     offset: (+page - 1) * +size,

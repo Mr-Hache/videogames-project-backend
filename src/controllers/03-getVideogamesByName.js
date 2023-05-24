@@ -44,7 +44,7 @@ const getVideogamesByName = async (name) => {
 
     return data.length === 0
       ? (() => {
-          throw new Error("No videogames found with the name " + name);
+          return [];
         })()
       : data.length <= 15
       ? data

@@ -28,12 +28,14 @@ const sequelize = new Sequelize(
     logging: false,
     // lets Sequelize know we can use pg-native for ~30% more speed
     native: false,
+    dialectModule: pg,
     dialectOptions: {
       ssl: {
         require: true,
         rejectUnauthorized: false,  // Necesario si usas un servidor PostgreSQL con SSL auto-firmado
       }
     }
+    
   }
 );
 

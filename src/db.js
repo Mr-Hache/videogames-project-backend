@@ -8,7 +8,8 @@ const fs = require("fs");
 const path = require("path");
 
 // The necessary variables are destructured from the environment data
-const { DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_DEPLOY } = process.env;
+const { DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_DEPLOY } =
+  process.env;
 
 // An instance of the Sequelize class is created using environment variables
 // const sequelize = new Sequelize(
@@ -21,23 +22,18 @@ const { DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_DEPLOY } = process.e
 //   }
 // );
 
-const sequelize = new Sequelize(
-  DB_DEPLOY,
-  {
-    // set to console.log to see the raw SQL queries
-    logging: false,
-    // lets Sequelize know we can use pg-native for ~30% more speed
-    native: false,
-    dialectModule: pg,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,  // Necesario si usas un servidor PostgreSQL con SSL auto-firmado
-      }
-    }
-    
-  }
-);
+const sequelize = new Sequelize(DB_DEPLOY, {
+  // set to console.log to see the raw SQL queries
+  logging: false,
+  // lets Sequelize know we can use pg-native for ~30% more speed
+  native: false,
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // Necesario si usas un servidor PostgreSQL con SSL auto-firmado
+    },
+  },
+});
 
 // The name of the current file is obtained
 const basename = path.basename(__filename);

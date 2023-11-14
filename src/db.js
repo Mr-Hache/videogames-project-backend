@@ -6,13 +6,14 @@ const { Sequelize } = require("sequelize");
 const fs = require("fs");
 // 'path' is imported, which allows handling both relative and absolute paths of the PC and the project
 const path = require("path");
+require('pg')
+
 
 // The necessary variables are destructured from the environment data
 // const { DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME, DB_DEPLOY } =
 //   process.env;
 
-const { DB_DEPLOY } =
-  process.env;
+const { DB_DEPLOY } = process.env;
 
 // An instance of the Sequelize class is created using environment variables
 // const sequelize = new Sequelize(
